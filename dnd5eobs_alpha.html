@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>D&D 5e Observer (alpha)</title>
+	<meta charset="utf-8">
+	<link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light+Two&amp;subset=latin-ext" rel="stylesheet">
+	<link rel = "stylesheet" href = "css/style.css">
+	<script src="js/functions.js"></script>
+	<script src="js/equipment.js"></script>
+	<script src="js/npc.js"></script>
+	<script src="js/character.js"></script>
+	<script src="js/systems.js"></script>
+	<script src="js/map.js"></script>
+</head>
+<body onload="GameStart()">
+	<div class="screen">
+		<div class = "zone" id = "zone-opc">
+			<div class = "opc-statblock">
+				<p id="opc-name">OPC</p>
+				<p id="opc-description"></p>
+				<div>
+					<p id="opc-xp">XP</p>
+					<p id="opc-ac">AC</p>
+					<p id="opc-hp">HP</p>
+					<p id="opc-speed">Sp</p>
+				</div>
+				<div class="opc-abilities">
+					<p class="ability-score" id="ability-str">STR</p>
+					<p class="ability-score" id="ability-dex">DEX</p>
+					<p class="ability-score" id="ability-con">CON</p>
+					<p class="ability-score" id="ability-int">INT</p>
+					<p class="ability-score" id="ability-wis">WIS</p>
+					<p class="ability-score" id="ability-cha">CHA</p>
+				</div>
+				<p id="opc-saves">Saving Throws</p>
+				<p id="opc-skills">Skills</p>
+				<p id="opc-languages">Languages</p>
+			</div>
+			<div>
+				<h2>Items</h2>
+				<p id = "opc-encumberance">---</p>
+				<p id = "opc-main-hand">---</p>
+				<p id = "opc-off-hand">---</p>
+				<p id = "opc-armor">---</p>
+				<p id = "opc-items">---</p>
+			</div>
+			<div class="opc-button" onclick="ObserverButton()">
+				<p>Click here to skip ahead</p>
+			</div>
+			<div class = round-timer>
+				<h2>Timer</h2>
+				<p id="round-timer">0</p>
+			</div>
+		</div>
+		<div class = "zone" id = "zone-map">
+			<div class = "map-layer" id = "graphics-map">
+			</div>
+			<div class = "map-layer" id = "tile-map">
+			</div>
+			<div class = "map-layer" id = "elements-map">
+			</div>
+		</div>
+		<div class = "zone" id = "zone-npc">
+			<p id = "npc-name">NPC</p>
+			<p id = "npc-hp">NPC</p>
+			<div class = "opc-feedback">
+				<h2>Feedback</h2>
+				<p id = "opc-feedback"></p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+/* 
+html5doctor.com Reset Stylesheet
+v1.6.1
+Last Updated: 2010-09-17
+Author: Richard Clark - http://richclarkdesign.com 
+Twitter: @rich_clark
+*/
+
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+body {
+    line-height:1;
+}
+
+article,aside,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section { 
+    display:block;
+}
+
+nav ul {
+    list-style:none;
+}
+
+blockquote, q {
+    quotes:none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content:'';
+    content:none;
+}
+
+a {
+    margin:0;
+    padding:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+/* change colours to suit your needs */
+ins {
+    background-color:#ff9;
+    color:#000;
+    text-decoration:none;
+}
+
+/* change colours to suit your needs */
+mark {
+    background-color:#ff9;
+    color:#000; 
+    font-style:italic;
+    font-weight:bold;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+abbr[title], dfn[title] {
+    border-bottom:1px dotted;
+    cursor:help;
+}
+
+table {
+    border-collapse:collapse;
+    border-spacing:0;
+}
+
+/* change border colour to suit your needs */
+hr {
+    display:block;
+    height:1px;
+    border:0;   
+    border-top:1px solid #cccccc;
+    margin:1em 0;
+    padding:0;
+}
+
+input, select {
+    vertical-align:middle;
+}
+/* end of style reset */
+
+/*
+D&D Observer Index Stylesheet
+Created: 29/12/2018
+Updated: 29/12/2018
+By:Derek Gilmore
+Twitter: @TheServantDM
+*/
+
+body {
+    background-color: #bbdddd;
+}
+
+.wrapper {
+    width:1200px;
+    margin:0 auto;
+}
+
+h1,h2,p,ul {
+    font-family: 'Shadows Into Light Two', cursive;
+    margin:0.5% auto;
+    padding:0.5%;
+}
+
+h1 {
+    font-size: 200%;
+    color:#000;
+    background-color: #99bbbb;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+nav {
+    margin: 0 20%;
+    text-align: center;
+    background-color: #fff;
+}
+
+ul li {
+    font-size: 150%;
+    list-style: none;
+    display: inline-block;
+}
+
+ul li a {
+    padding: 0 10px;
+}
+
+h2 {
+    font-size: 150%;
+    color: #fff;
+    letter-spacing: 3px;
+    word-spacing: -10px;
+    background-color: #000;
+    text-align: center;
+    margin-right: 10%;
+    margin-left: 10%;
+}
+
+p {
+	font-size: 150%;
+    font-weight: 700;
+    line-height: 200%;
+    background-color: #fff;
+	text-align: left;
+    margin: 0 20%;
+    padding: 0 5%;
+}
+
+a {
+    color:#000;
+    text-shadow: 1px 1px #99bbbb;
+    letter-spacing: 2px;
+    word-spacing: -10px;
+}
+
+a:hover {
+    background-color: #99bbbb;
+    text-shadow: 1px 1px #fff;
+}
+
+b {
+    text-shadow: 1px 1px 4px #fff;
+    background-color: #99bbbb;
+}
+
+table {
+    font-family: 'Shadows Into Light Two', cursive;
+    font-size:150%;
+    font-weight: 700;
+    text-align: center;
+    background-color: #fff;
+    border:3px solid #000;
+    margin:auto;
+}
+
+th {
+    background-color:#99bbbb;
+    padding:20px;
+}
+
+td {    
+    border: 1px solid #99bbbb;
+    padding:10px;
+}
+
+.corner {
+    background-color:#000;
+    color:#fff;
+}

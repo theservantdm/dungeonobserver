@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dungeon Observer Developer's (We)blog</title>
+	<meta charset="utf-8">
+	<link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light+Two&amp;subset=latin-ext" rel="stylesheet">
+	<link rel = "stylesheet" href = "css/index_style.css">
+</head>
+<body>
+	<div class="wrapper">
+		<h1>Developer's (We)blog</h1>
+			<nav>
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="dnd5eobs_alpha.html">DO5e</a></li>
+					<li><a href="blog.html">Blog</a></li>
+					<li><a href="fragility.html">Fragility</a></li>
+				</ul>
+			</nav>
+			<h2>The problem with darkness</h2>
+				<p>23/01/2019<br>
+				One of the features that I want in Dungeon Observer is light sources for the character. In my initial conception of this, it wasn’t a big deal. Start with a torch, set a life span of an hour, replace the torch. Eventually upgrade to a lantern and then perhaps a magical light source. <br>
+				The problem is, that’s not how it works. Magical weapons can shed light, as can armor. You could even have a light source that follows you around (perhaps not in the System Reference Document, but they exist). For a human player, this is a non-issue. They just make sure they have a light source in their equipped gear, and optimise what they can around it. For the program logic, it’s a different story. <br>
+				I’m trying to find an elegant way to set priorities that allows for different builds (sword and shield, two weapon fighting, heavy two-handed weapons, etc.) that will always include a light source of some kind. Ideally it will be future proof against additional classes, spell casters being the most complex I’m sure. <br>
+				I think I have an idea, writing a generic function that will equip based on input priorities, and then assigning those priorities based on class/build. Though as I write this, I think the best thing to do is to equip the best light source first, and then fill in the rest of the gear around that… I’m going to have to do a test build and see if I like it. <br>
+				Thinking this stuff through it key, and writing this out has helped with that. Yay!<br></p>
+
+			<h2>Winning the race (slow and steady)</h2>
+				<p>17/01/2019<br>
+				LOOT! Ahem…<br>
+				Yes, one of the big draws of games is acquiring new toys. I’ve been working on bones of a loot and equipment system. The current goal is to write a function that will scan through the character’s backpack and equip the best gear. As I go I’m trying to incorporate the lesson I mentioned in my last post, planning things out. In theory that means strategically laying everything out ahead of time, in practice it means going a little slower and spending some more time thinking before I code. I guess I’m meeting myself half way.<br>
+				That being said, I finished the armour portion of the function today and it worked the way I wanted right out of the gate. No partial successes, and no rework to compensate for bad ideas/decisions. Yay! I’m also enjoying a less furious pace so I can enjoy other aspects of life. I’m working on the project every day, but I’m making a point to go easy instead of racing ahead recklessly. So far, I like the new format.</p>
+			<h2>Survivalist</h2>
+				<p>13/01/2019<br>
+				Repeatedly fighting to the death is not a great way to live one’s life. Over the past few days I’ve added in some logic designed to keep the character alive a little longer. It mostly involves running away and having a nap when things are looking dire. It doesn’t mean the character can’t die, it just means they don’t stand in the face of certain death quite so eagerly.<br>
+				My code is a mess. When I’m working on it and I’m scrolling through looking for some function or other, it feels bloated and disorganised. I know this is the result of not planning the project in advance, but I’m not sure that I could have. I’m basically learning JavaScript as I go and this whole project is a learning experience. One of the things I’ve learned is to plan my projects better.</p>
+			<h2>User interaction?!</h2>
+				<p>09/01/2019<br>
+				For testing, I frequently tweak parts of the code to force results instead of waiting on the desired outcome to occur randomly. This is a very normal practice, and I’m pretty sure it’s why “cheat codes” were originally placed in old-school video games. This of course comes with drawbacks, most notably the potential to break a chunk of code that used to work perfectly. One of the parameters I tweaked the most often was the duration of a round. The standard round is 6 seconds, but that can feel awfully slow when you need to see something a few rounds away… I’m not a fan of awfully slow.<br>
+				<b>Enter the button.</b><br>
+				I added a simple UI element that says “Click to advance” and it does just that. Now I can skip ahead to the event I’m testing with ease and without accidentally breaking something in the process. Yay me!<br>
+				I will most likely leave the feature in for the final version of the game, since “clicker” is a style of game people play, and since what I’m making shares some aspects of that genre. I might eliminate the button in favour of clicking anywhere on the screen, but for now this will suffice.</p>
+			<h2>Usicho has died…</h2>
+				<P>08/01/2019<br>
+				The basic combat system is written and running. Even in this initial and simple form, there’s a lot going on. For one thing, there are a lot of branching logic-paths that accompany dice rolls, all of which have to be considered and worked in to the program. For another, there’s storing and accessing the NPC which is a pretty complex dataset. Storing it in a manner that is flexible enough to accommodate the large variety of available NPCs may or may not be a target that I hit on this iteration.<br>
+				Now that there’s combat, the life of our randomly generated character is on the line. They travel about the halls of the dungeon facing danger and eventually falling victim to it. I added in the death saving throws and some rest mechanics already, but I think some self-preservation logic is next in line for our character.
+				</P>
+			<h2>Two pillars out of three</h2>
+				<p>05/01/2019<br>
+				A roleplaying game like Dungeons & Dragons is built on three types of gameplay (called pillars); combat, exploration, and roleplaying. Dungeon Observer was never intended to fill the third pillar of roleplaying for the obvious reasons, so it’s all about the first two. To this point, I’ve been working on the first, exploration. This the map generation, navigation, revealing, secret doors/chambers. Since that stuff is working (hammered a couple more bugs out of the secrets rooms today), it’s time to move on to the second pillar.<br>
+				Combat. Yup, I started laying the groundwork for combat. I seeded random encounters through the map, and then laid out the basics of a combat event function. Right now all it does is stops exploration, picks a random NPC (Bat or Giant Bat), then cycles a couple rounds with a counter before clearing the combat info and resuming exploration.<br>
+				Exciting? Probably not on the surface, but all crucial things before the fun stuff can happen.<br>
+				</p>
+			<h2>control + z, control + z, control + z</h2>
+				<p>04/01/2019<br>
+				I was fiddling with the graphics and I broke something, and then I couldn’t figure out what it was or how to fix it… I ended up grabbing an older version of one of the files and hitting control + z a lot on the other. It was a little scary, but a good reminder about backing things up. Fortunately I didn’t lose any progress.<br>
+				Since traveling around the map is functional, I worked on discovering secret rooms by triggering an encounter when you enter an area with a secret door. Since there’s no player interaction, it’s just a bit of story / tension to watch before going back into travel mode.<br>
+				The same basic structure will be used for triggering other encounters such as traps and combat so I tried my best to future-proof the way I coded it.</p>
+			<h2>Onions have layers. Ogres have layers.</h2>
+				<p>03/01/2019<br>
+				Maps can also have layers it turns out. I know because I added a new layer to the map to display the graphics for the dungeon. This is the first graphical thing I’ve done to the game, so it feels like a big deal. In truth, getting the program to recognize which exits were valid for each tile so it could select the correct graphic to display was probably the bigger deal.<br>
+				While I code I let the game run in a browser so it’s always ready for a quick refresh to test the latest changes. Sometimes when I glance over at the game it’s doing something unexpected which often has me scouring code looking for errors. The most interesting anomaly of late was when the left-hand-rule maze solver was caught going around in circles to the right… It ended up being related to the secret rooms (of course there are secret rooms!) which resulted in the initial need to find out where the valid exits from a tile were. I’m not sure if it’s something I can convey in text, but suffice to say it was an interesting discovery and an enjoyable solution.</p>
+			<h2>I’ll be your host this evening</h2>
+				<p>02/01/2019<br>
+				I tackled the web hosting thing today, first I tried (<a href="https://droppages.com">Drop Pages</a>) which was easy to set up, but ultimately wasn’t what I wanted. It had some weird protocol that wasn’t friendly to pre-made webpages, but wanted me to make things with their format. Thanks, but no thanks.<br>
+				I also took a look at <a href="https://wordpress.com/">Word Press</a> and <a href="https://www.wix.com/">Wix</a>, and they seemed good for blogging, but not so hot for hosting.<br>
+				Next I tried <a href="https://drv.tw/">Drive to Web</a> which I was sceptical of because it demands full access to your Google Drive, but mine was basically empty anyway so it didn’t seem like a big deal. Feel free to let me know if I’m wrong. I decided to give it a try, and it seems to do what I want. Yay!<br>
+				I also saw Github come up as an option but I a quick look makes it think it’s not for me at this time.<br>
+				</p>
+			<h2>Talking about map generation</h2>
+				<p>01/01/2019<br>
+				Today I worked on dungeon generation. I decided to use a node-style design, with 5 nodes placed randomly within 5 zones. Then I made a simple path-finding algorithm to connect them in different patterns. The resulting maps vary greatly depending on the connection pattern; X, S, and spiral are the forms I chose to implement today. After that, I added in some random open space as offshoots to break up the patterns and then some secret room nodes because who doesn’t love a secret room. The intention there is to have them only accessible with a successful investigation check.<br>
+				Since I was on a roll, I made an algorithm that moves through the dungeon using the Left Hand Rule. It’s probably not the most elegant of creations, but it works. It even calls itself on a timer (for now) so it keeps exploring until it gets back to the start position whereupon a new dungeon is created and resumes its duties.<br>
+				I’m looking into some simple webhosting so hopefully I have something I can share soon.
+				</p>
+			<h2>Every hero needs a name!</h2>
+				<p>31/12/2018<br>
+				The initial version of the character generator is done. Not really what I should have been focussing on this early in the game (a simple pre-made character would have worked fine for system testing) but I enjoyed tackling the problems with my very tired and ill mind. It started with a random name generator concept which I’m still enjoying the results of. Escapu and Istab might be my favourites. After that came ability score generation and assignment to avoid non-practical results, and then skills, languages, and saving throws. They are working, though it probably won’t end up being how I implement some of it moving forward.<br>
+				Once I realised my focus was misplaced I tackled dynamic map grid generation (obsoleting work from 2 days ago) and figuring out how to update the webpage to reflect the JavaScript running in the background. Now that I’ve figured that out I’m going to start looking at different types of map generation.
+				</p>
+			<h2>Dynamic scaling!</h2>
+				<p>30/12/2018<br>
+				Today’s work was on the game screen, with a focus on the map area. The whole screen needs to adjust to whatever size of screen it’s being viewed on, with a further complication that the map (center of the screen) needs to be broken down into a 10 x 10 grid that scales automatically. That grid needs to be tagged with individual identifiers to allow the JavaScript to interact with it later on. It took a while, but I eventually figured out the right combination of HTML and CSS to do what I wanted.</p>
+			<h2>The first steps...</h2>
+				<p>29/12/2018<br>
+				I have a really bad cold right now, which means I spent most of yesterday sitting at my computer trying not to get the rest of my family sick. Part of that time was spent working on a basic layout for the game page while thinking about ways to implement various ideas. I really don't have the programming know-how to put all of my ideas into action, but I'm working on it. I'm a little torn between working through all of the HTML & CSS tutorials by mmtuts first, or just digging into the code and learning as I go. I'll probably end up trying to do both.</p>
+	</div>
+</body>
+</html>
