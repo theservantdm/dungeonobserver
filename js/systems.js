@@ -415,6 +415,7 @@ function EquipBest() {
 		OPC.backpack.push(OPC.armor); // put current armor into pack
 		OPC.armor = []; // remove armor
 	}
+	OPC.backpack.sort(); // reorganise the backpack	
 // Part 2: find best option ignoring light requirements
 	switch(OPC.build) {
 	case "footman":
@@ -680,11 +681,7 @@ Order priority needs to be laid out for each build, and then the function should
 			break;
 	}
 // Part 5: equip the best gear
-	// armor
-	OPC.armor = OPC.backpack[armorPosBP]; // put new armor on
-		console.log(OPC.backpack[armorPosBP]);
-		console.log(OPC.armor);
-	OPC.backpack.splice(armorPosBP, 1); // remove new armor from pack
+	// the backpack has been sorted by [0] of each item, so the order will be armor, lights, misc, shields, weapons
 	// main hand weapon
 	OPC.mainHand = OPC.backpack[weaponPosBP]; // put new weapon in main hand on
 		console.log(OPC.backpack[weaponPosBP]);
@@ -695,12 +692,20 @@ Order priority needs to be laid out for each build, and then the function should
 		console.log(OPC.backpack[shieldPosBP]);
 		console.log(OPC.offHand);
 	OPC.backpack.splice(shieldPosBP, 1); // remove new light from pack
+	// armor
+	OPC.armor = OPC.backpack[armorPosBP]; // put new armor on
+		console.log(OPC.backpack[armorPosBP]);
+		console.log(OPC.armor);
+	OPC.backpack.splice(armorPosBP, 1); // remove new armor from pack
 	// backpack
 	OPC.backpack.sort(); // reorganise the backpack
 	// calculate character stats
 	OPC.AC = CalculateAC();
 	OPC.attackBonus = CalculateAttackBonus();
+	OPC.damageDice = SetDamageDice();
+	OPC.damageType = SetDamageType();
 	OPC.damageBonus = CalculateDamageBonus();
+	console.log(OPC.damageDice + " " + OPC.damageType);
 };
 
 // this function will 
@@ -795,14 +800,14 @@ function Combat() {
 							else if(attackTotalOPC >= NPC.AC || // hit
 							attackRollOPC == 20) { // or critical hit
 								if(attackRollOPC == 20) { // critical hit!
-									damageDealtOPC = Dice(OPC.mainHand[2]) + Dice(OPC.mainHand[2]) + OPC.damageBonus;
+									damageDealtOPC = Dice(OPC.damageDice[0],OPC.damageDice[1]) + Dice(OPC.damageDice[0],OPC.damageDice[1]) + OPC.damageBonus;
 									feedback += "<br>It hits critically for "
 								}
 								else {
-									damageDealtOPC = Dice(OPC.mainHand[2]) + OPC.damageBonus;
+									damageDealtOPC = Dice(OPC.damageDice[0],OPC.damageDice[1]) + OPC.damageBonus;
 									feedback += "<br>It hits for "
 								}
-								feedback += damageDealtOPC + " " + OPC.mainHand[3] +" damage!";
+								feedback += damageDealtOPC + " " + OPC.damageType +" damage!";
 								for(iDR = 0; iDR < NPC.damageRes.length; iDR ++) {
 									if(NPC.damageRes[iDR] == "piercing") {
 										damageResistedNPC = Math.ceil(damageDealtOPC/2);

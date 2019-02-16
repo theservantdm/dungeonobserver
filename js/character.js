@@ -12,7 +12,7 @@ This file contains the code for the character generation and display
 function ObserverButton() {
 	clearTimeout(nextRound);
 	RoundTimer();
-};
+}
 
 // sets the OPC object
 OPC = {
@@ -41,12 +41,14 @@ OPC = {
 	skills: [],
 	senses: [],
 	languages: [],
-	mainHand: [],
+	mainHand: "",
 	attackBonus: 0,
+	damageDice: [],
+	damageType: "",
 	damageBonus: 0,
-	offHand: [],
+	offHand: "",
 	armor: "",
-	backpack: [leather,torch,studdedLeather,dagger,shortSword,torch,lantern],
+	backpack: [leather,torch,shortSword],
 	encumberance: 0,
 	light: 0,
 	lightLoc: "",
@@ -110,7 +112,7 @@ function NameGenerator() {
 	}
 	var allSounds = firstSound + secondSound + thirdSound + fourthSound + fifthSound + sixthSound; // combine the random sounds
 	OPC.name = allSounds.substr(0,1).toUpperCase() + allSounds.substr(-(allSounds.length-1)); // make the first letter upper case
-};
+}
 
 // this function randomly determines personality
 function AssignPersonality() {
@@ -119,7 +121,7 @@ function AssignPersonality() {
 			OPC.personality = "balanced";
 			break;
 	}	
-};
+}
 
 // this function randomly determines build
 function AssignBuild() {
@@ -140,7 +142,7 @@ function AssignBuild() {
 			OPC.build = "dervish";
 			break;
 	}	
-};
+}
 
 // this function generates random ability scores for the OPC
 //var abilityScores;
@@ -171,7 +173,7 @@ function AbiltyScores() {
 		rolls[ArrayFindPositionHighest(rolls)] = 0;
 		abilityPriority[ArrayFindPositionHighest(abilityPriority)] = 0;
 	}
-};
+}
 
 // this function randomly determines race
 function AssignRace() {
@@ -180,7 +182,7 @@ function AssignRace() {
 			OPC.race = "human";
 			break;
 	}
-};
+}
 
 // this function applies the racial attributes to the OPC
 function RacialAttributes(raceOPC) {
@@ -195,7 +197,7 @@ function RacialAttributes(raceOPC) {
 		var known = languages[Dice(languages.length)-1];
 		OPC.languages = ["common", known]
 	}
-};
+}
 
 // this function randomly determines class
 function AssignClass() {
@@ -204,7 +206,7 @@ function AssignClass() {
 			OPC.class = "fighter";
 			break;
 	}
-};
+}
 
 // this function applies the class attributes to the OPC
 function ClassAttributes(classOPC) {
@@ -254,7 +256,7 @@ function ClassAttributes(classOPC) {
 			}
 			OPC.CFSecondWind = 1;
 	}
-};
+}
 
 // this function calculates the AC of the OPC
 function CalculateAC(armor = OPC.armor) {
@@ -276,28 +278,54 @@ function CalculateAC(armor = OPC.armor) {
 		armorClass += OPC.offHand[1];
 	}
 	return armorClass;
-};
+}
+
+// this function determines the damage dice of the weapon(s) and returns the array
+function SetDamageDice(weapon = OPC.mainHand) {
+	console.log("dice: " + OPC.mainHand);
+	diceDamageArray = [4,1]; // for all non-weapon class items (improvised weapons)
+	if(weapon[0] == "w") { // is a weapon class item
+		diceDamageArray = weapon[2];
+		console.log(weapon + " DDA " + diceDamageArray);
+	}
+	return diceDamageArray;
+}
+
+// this function determines the damage type of the weapon(s) and returns the text string
+function SetDamageType(weapon = OPC.mainHand) {
+	console.log("type: " + OPC.mainHand);
+	damageTypeText = "bludgeoning"; // for all non-weapon class items (improvised weapons)
+	if(weapon[0] == "w") { // is a weapon class item
+		damageTypeText = weapon[3];
+	}
+	return damageTypeText;
+}
 
 // this function calculates the attack bonus for the OPC
 function CalculateAttackBonus(weapon = OPC.mainHand) {
 	attackBonus = 0;
 	hasFinesse = 0;
-	for(iAB = 0; iAB < weapon[4].length; iAB ++) { // I think there's an easier way to do this using an array method //////////////////////
-		if(weapon[4][iAB] == "finesse") { // weaopn has finesse property
-			hasFinesse = 1;
-			break;
+	if(weapon[0] = "w") { // if this is a weapon class item
+		for(iAB = 0; iAB < weapon[4].length; iAB ++) { // I think there's an easier way to do this using an array method //////////////////////
+			if(weapon[4][iAB] == "finesse") { // weaopn has finesse property
+				hasFinesse = 1;
+				break;
+			}
+		}
+		// replace with array.includes("finesse");
+		if(hasFinesse > 0) { // weaopn has finesse property, take better between str and dex
+			attackBonus += Math.floor(Math.max(OPC.abilityScores[0],OPC.abilityScores[1])/2)-5;
+		}
+		else { // add str mod
+			attackBonus += Math.floor(OPC.abilityScores[0]/2)-5;
 		}
 	}
-	// replace with array.includes("finesse");
-	if(hasFinesse > 0) { // weaopn has finesse property, take better between str and dex
-		attackBonus += Math.floor(Math.max(OPC.abilityScores[0],OPC.abilityScores[1])/2)-5;
-	}
-	else { // add str mod
+	else { // for all non-weapon classed items
 		attackBonus += Math.floor(OPC.abilityScores[0]/2)-5;
 	}
 	attackBonus += OPC.proficiencyBonus;
 	return attackBonus;
-};
+}
 
 // this function calculates the damage bonus for the OPC
 function CalculateDamageBonus(weapon = OPC.mainHand) {
@@ -316,7 +344,7 @@ function CalculateDamageBonus(weapon = OPC.mainHand) {
 		damageBonus += Math.floor(OPC.abilityScores[0]/2)-5;
 	}
 	return damageBonus;
-};
+}
 
 // this function calculates the encumberance for the OPC
 function CalculateEncumberance() { // STR * 5, * 10
@@ -384,7 +412,7 @@ function CalculateEncumberance() { // STR * 5, * 10
 				break;			
 		}
 	}
-};
+}
 
 // this function writes the character information to the page
 function WriteOPC() {
@@ -415,7 +443,7 @@ function WriteOPC() {
 		items += OPC.backpack[iBP][1];
 	}
 	document.getElementById("opc-items").innerHTML="Backpack: " + items;
-};
+}
 
 // this function creates the OPC
 function GenerateCharacter() {
@@ -430,7 +458,7 @@ function GenerateCharacter() {
 	EquipBest();
 	CalculateEncumberance();
 	WriteOPC();
-};
+}
 
 
 /*
