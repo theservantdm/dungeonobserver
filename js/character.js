@@ -48,7 +48,7 @@ OPC = {
 	damageBonus: 0,
 	offHand: "",
 	armor: "",
-	backpack: [leather,torch,shortSword],
+	backpack: [leather,torch,dagger,torch],
 	encumberance: 0,
 	light: 0,
 	lightLoc: "",
@@ -261,7 +261,7 @@ function ClassAttributes(classOPC) {
 // this function calculates the AC of the OPC
 function CalculateAC(armor = OPC.armor) {
 	baseAC = 10;
-	if(armor[0] != "") {
+	if(Array.isArray(armor)) {
 		baseAC = armor[2];
 	}
 	dexMod = Math.floor(OPC.abilityScores[1]/2)-5;
@@ -270,30 +270,29 @@ function CalculateAC(armor = OPC.armor) {
 			dexMod = 0;
 			break;
 		default:
-			dexMod = Math.min(dexMod, armor[3]);
+			if(Array.isArray(armor)) {
+				dexMod = Math.min(dexMod, armor[3]);
+			}
 			break;
 	}
 	armorClass = baseAC + dexMod;
-	if(OPC.offHand[0] == "shield"){
-		armorClass += OPC.offHand[1];
+	if(OPC.offHand[0] == "s"){
+		armorClass += OPC.offHand[2];
 	}
 	return armorClass;
 }
 
 // this function determines the damage dice of the weapon(s) and returns the array
 function SetDamageDice(weapon = OPC.mainHand) {
-	console.log("dice: " + OPC.mainHand);
 	diceDamageArray = [4,1]; // for all non-weapon class items (improvised weapons)
 	if(weapon[0] == "w") { // is a weapon class item
 		diceDamageArray = weapon[2];
-		console.log(weapon + " DDA " + diceDamageArray);
 	}
 	return diceDamageArray;
 }
 
 // this function determines the damage type of the weapon(s) and returns the text string
 function SetDamageType(weapon = OPC.mainHand) {
-	console.log("type: " + OPC.mainHand);
 	damageTypeText = "bludgeoning"; // for all non-weapon class items (improvised weapons)
 	if(weapon[0] == "w") { // is a weapon class item
 		damageTypeText = weapon[3];
@@ -440,7 +439,7 @@ function WriteOPC() {
 		if(items != "") {
 			items += ", ";
 		}
-		items += OPC.backpack[iBP][1];
+		items += OPC.backpack[iBP][1];	
 	}
 	document.getElementById("opc-items").innerHTML="Backpack: " + items;
 }

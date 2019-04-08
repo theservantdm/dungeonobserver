@@ -67,6 +67,7 @@ function TravelExit() {
 	if(pNorth >= 0 && // is on map
 	gridArr[pNorth].encounter != "combat" && // is not hostile
 	gridArr[pNorth].explored > 0 && // has been explored
+	//gridArr[pNorth}.room != "SC" &&
 	//gridArr[pNorth].pathValue < gridArr[OPC.currentPos].pathValue && // is cloder to start than current posiiton
 	gridArr[pNorth].pathValue  > 0) { // is a valid path to start
 		if(gridArr[pNorth].pathValue < pBest) {
@@ -110,6 +111,13 @@ function TravelExit() {
 
 // this function will determine the next move for the OPC using the "left hand rule"
 function TravelLHR() {
+	if(OPC.currentPos >= 0 && // is valid poisition
+	OPC.currentPos <= 99) {
+		if(gridArr[OPC.currentPos].loot.length != 0) { // there is some thing stored in the loot array for this position
+			Loot(); // loot current position
+			return; // skip the rest of the function
+			}
+		}
 	if(OPC.currentPos == -1) {
 		for(var i = 0; i < gridArr.length; i++) { // find and store the start position and thi intial OPC locations
 			if(gridArr[i].room == "ST"){
@@ -405,17 +413,17 @@ function EquipBest() {
 // Part 1: place all items in the backpack
 	if(Array.isArray(OPC.mainHand)) {
 		OPC.backpack.push(OPC.mainHand); // put current main hand weapon into pack
-		OPC.mainHand = []; // empty main hand
+		OPC.mainHand = ""; // empty main hand
 	}
 	if(Array.isArray(OPC.offHand)) {
 		OPC.backpack.push(OPC.offHand); // put current off hand item into pack
-		OPC.offHand = []; // empty off hand
+		OPC.offHand = ""; // empty off hand
 	}
 	if(Array.isArray(OPC.armor)) {
 		OPC.backpack.push(OPC.armor); // put current armor into pack
-		OPC.armor = []; // remove armor
+		OPC.armor = ""; // remove armor
 	}
-	OPC.backpack.sort(); // reorganise the backpack	
+	OPC.backpack.sort(); // reorganise the backpack	alphbetically based on item[0]
 // Part 2: find best option ignoring light requirements
 	switch(OPC.build) {
 	case "footman":
@@ -424,19 +432,19 @@ function EquipBest() {
 		shieldValue = 0;
 		for(iEB = 0; iEB < OPC.backpack.length; iEB++) {
 			if(OPC.backpack[iEB][0] == "s") { // only do for shields
-				if(shieldPosBP == -1) {
+				if(shieldPosBP == -1) { // haven't located a shield up to now
 					shieldPosBP = iEB;
 					shieldValue = OPC.backpack[iEB][2];
 					continue;
 				}
-				else if(shieldValue > OPC.backpack[iEB][2]) {
+				else if(shieldValue > OPC.backpack[iEB][2]) { // not a defense improvement
 					continue;
 				}
-				else if(shieldValue == OPC.backpack[iEB][2] &&
-				OPC.backpack[shieldPosBP][3] <= OPC.backpack[iEB][3]) {
+				else if(shieldValue == OPC.backpack[iEB][2] && // as good defensively
+				OPC.backpack[shieldPosBP][3] <= OPC.backpack[iEB][3]) { // not a weight improvement
 					continue;
 				}
-				else {
+				else { // update best shield option
 					shieldPosBP = iEB;
 					shieldValue = OPC.backpack[iEB][2];
 				}
@@ -483,29 +491,29 @@ function EquipBest() {
 		/////////////////////////////////////// UPDATE FOR OFF HAND LIGHT WEAPONS //////////////////////////////////////////////
 
 	// find the best armor
-		armorClass = CalculateAC();
+		armorClassE = CalculateAC();
 		armorPosBP = -1;
 		for(iEB = 0; iEB < OPC.backpack.length; iEB++) {
 			if(OPC.backpack[iEB][0] == "a") { // only do for armor
-				newAC = CalculateAC(OPC.backpack[iEB]); 
+				newAC = CalculateAC(OPC.backpack[iEB]);
 				if(OPC.abilityScores[0] < OPC.backpack[iEB][4]) { // check strength requirement
 					continue;
 				}
 				if(armorPosBP == -1){ // if this is the first viable armor, use it as a baseline
 					armorPosBP = iEB;
-					armorClass = newAC;
+					armorClassE = newAC;
 					continue;
 				}
-				else if(armorClass > newAC) { // this armor is not better
+				else if(armorClassE > newAC) { // this armor is not better
 					continue;
 				}
-				else if(armorClass == newAC && // no change to AC
+				else if(armorClassE == newAC && // no change to AC
 				OPC.backpack[armorPosBP][6] <= OPC.backpack[iEB][6]) { // current armor is lighter
 					continue;
 				}
 				else {
 					armorPosBP = iEB;
-					armorClass = newAC;
+					armorClassE = newAC;
 				}
 			}
 		}
@@ -681,21 +689,15 @@ Order priority needs to be laid out for each build, and then the function should
 			break;
 	}
 // Part 5: equip the best gear
-	// the backpack has been sorted by [0] of each item, so the order will be armor, lights, misc, shields, weapons
+	// the backpack has been sorted by item[0], so the order will be armor, lights, misc, shields, weapons
 	// main hand weapon
 	OPC.mainHand = OPC.backpack[weaponPosBP]; // put new weapon in main hand on
-		console.log(OPC.backpack[weaponPosBP]);
-		console.log(OPC.mainHand);
 	OPC.backpack.splice(weaponPosBP, 1); // remove new weapon from pack
 	// off hand shield
 	OPC.offHand = OPC.backpack[shieldPosBP]; // put new light in off hand
-		console.log(OPC.backpack[shieldPosBP]);
-		console.log(OPC.offHand);
 	OPC.backpack.splice(shieldPosBP, 1); // remove new light from pack
 	// armor
 	OPC.armor = OPC.backpack[armorPosBP]; // put new armor on
-		console.log(OPC.backpack[armorPosBP]);
-		console.log(OPC.armor);
 	OPC.backpack.splice(armorPosBP, 1); // remove new armor from pack
 	// backpack
 	OPC.backpack.sort(); // reorganise the backpack
@@ -705,13 +707,21 @@ Order priority needs to be laid out for each build, and then the function should
 	OPC.damageDice = SetDamageDice();
 	OPC.damageType = SetDamageType();
 	OPC.damageBonus = CalculateDamageBonus();
-	console.log(OPC.damageDice + " " + OPC.damageType);
+	WriteOPC();
 };
 
-// this function will 
+// this function will loot for the OPC
 function Loot() {
-	//
-};
+	for (iL = 0; iL < gridArr[OPC.currentPos].loot.length; iL ++) {
+		OPC.backpack.push(gridArr[OPC.currentPos].loot[iL]);
+		// update feedback with a message listing what was discovered
+	}
+	gridArr[OPC.currentPos].loot = [];
+	CalculateEncumberance();
+	gridArr[OPC.currentPos].loot = [];
+	EquipBest();
+	OPC.goal ="travel";
+}
 /*
 add item to inventory
 - check for space
@@ -821,12 +831,17 @@ function Combat() {
 								if(NPC.hpCurrent < 1) {
 									feedback += "<br>" + NPC.name + " was slain!";
 									document.getElementById("opc-feedback").innerHTML=feedback;
+									//////////////////////////////////////////////////////////////////////////////////// XP gain
 									OPC.experience += Math.max(200 * NPC.CR, 10);
 									document.getElementById("opc-xp").innerHTML="XP: " + OPC.experience;
+									//////////////////////////////////////////////////////////////////////////////////// XP gain
 									document.getElementById("npc-name").innerHTML="";
 									document.getElementById("npc-hp").innerHTML="";
-									OPC.goal = "travel";
+									OPC.goal ="loot";
 									gridArr[OPC.currentPos].encounter = "";
+									if(NPC.loot.length > 0) {
+										gridArr[OPC.currentPos].loot = NPC.loot;
+									}
 									combatStage = 0;
 									return;
 								}
@@ -991,9 +1006,21 @@ function ShortRest() {
 
 // this function will heal OPC by the value of 1 hit dice + Con mod (to be expanded later)
 function LongRest() {
+//	level up?
+	AdvanceXP = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000]; // XP in array to compare to level
+	if(AdvanceXP[OPC.level] <= OPC.experience) {
+		console.log("level up!");
+		OPC.level ++; // increment level
+		OPC.hpMax += (Dice(OPC.hdValue) + Math.floor(OPC.abilityScores[2]/2) - 5); // increase HP
+		OPC.proficiencyBonus = Math.ceil(Math.max(OPC.level - 1,1) / 4) + 1; // increase proficiency bonus
+		// add abilities
+		WriteOPC();// write OPC 
+	}
+// rest...
 	document.getElementById("opc-feedback").innerHTML="Eight hours pass..";
 	OPC.hpCurrent = OPC.hpMax;
-	OPC.hdRemaining = 1; // should be + 1/2 level round down, min 1, max level
+//	OPC.hdRemaining = OPC.level; // should be + 1/2 level round down, min 1, max level
+	OPC.hdRemaining = Math.min(OPC.hdRemaining + Math.max(Math.floor(OPC.level / 2),1),OPC.level)
 	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining;
 	roundCounter += 4800;
 	document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds;
@@ -1039,6 +1066,8 @@ function RoundTimer() {
 	case "long rest":
 		LongRest();
 		break;
+	case "loot":
+		Loot();
 	case "none":
 		break;
 	default:

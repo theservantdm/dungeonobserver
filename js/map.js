@@ -31,7 +31,7 @@ function CreateGraphicsGrid() {
 function CreateMapArray() {
 	gridArr = [];
 	for(i=0; i<100; i++) {
-		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: ""});
+		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: "", loot: []});
 	}
 };
 
@@ -327,6 +327,7 @@ function PopulateSecretRoom() {
 		validPosition > 0) { // is a valid position (beside an open space)
 			gridArr[secretPosition].open = 1;
 			gridArr[secretPosition].room = "SC";
+			gridArr[secretPosition].loot.push(RTTSecretRoom());
 			secretDoorRoom = Dice(secretDoor.length) - 1;
 			gridArr[secretDoor[secretDoorRoom]].sDoor = 1; // place the secret door randomly from the available options
 			gridArr[secretPosition].exit = secretDoor[secretDoorRoom]; // track the exit
@@ -414,10 +415,11 @@ function AssignPathValue() {
 		for(iPV = 0; iPV < 100; iPV ++) {
 			if(gridArr[iPV].pathValue > 0 && // has an assigned path value
 			gridArr[iPV].explored > 0 && // only apply to explored places
-			gridArr[iPV].open > 0) { // is an open space
+			gridArr[iPV].open > 0) {  // is an open space
 				iNorth = iPV - 10;
 				if(iNorth >= 0 && // is on map
 				gridArr[iNorth].explored > 0 && // only check explored places
+				gridArr[iNorth].room != "SC" && // is not a secret chamber
 				gridArr[iNorth].open > 0) { // is an open tile
 					if(gridArr[iNorth].pathValue < 1 || // unassigned path value
 					gridArr[iNorth].pathValue > gridArr[iPV].pathValue + 1) { // there is a new shortest way there
@@ -427,6 +429,7 @@ function AssignPathValue() {
 				iEast = iPV + 1;
 				if(iEast <= 100 && // is on map
 				gridArr[iEast].explored > 0 && // only check explored places
+				gridArr[iEast].room != "SC" && // is not a secret chamber
 				Math.floor(iEast / 10) == Math.floor(iPV / 10) && // is on same Y axis as iPV
 				gridArr[iEast].open > 0) { // is an open tile
 					if(gridArr[iEast].pathValue < 1 || // unassigned path value
@@ -437,6 +440,7 @@ function AssignPathValue() {
 				iSouth = iPV + 10;
 				if(iSouth < 100 && // is on map
 				gridArr[iSouth].explored > 0 && // only check explored places
+				gridArr[iSouth].room != "SC" && // is not a secret chamber
 				gridArr[iSouth].open > 0) { // is an open tile
 					if(gridArr[iSouth].pathValue < 1 || // unassigned path value
 					gridArr[iSouth].pathValue > gridArr[iPV].pathValue + 1) { // there is a new shortest way there
@@ -446,6 +450,7 @@ function AssignPathValue() {
 				iWest = iPV - 1;
 				if(iWest >= 0 && // is on map
 				gridArr[iWest].explored > 0 && // only check explored places
+				gridArr[iWest].room != "SC" && // is not a secret chamber
 				Math.floor(iWest / 10) == Math.floor(iPV / 10) && // is on same Y axis as iPV
 				gridArr[iWest].open > 0) { // is an open tile
 					if(gridArr[iWest].pathValue < 1 || // unassigned path value
@@ -546,7 +551,7 @@ function UpdateTileMap() {
 	for(i=0; i<gridArr.length; i++) { // do for the whole map array
 		document.getElementById("t" + i.toString()).innerHTML = ""; // clears the letters off the map
 		if(gridArr[i].open == 1) {
-			//document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
+			document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
 		}
 		if(gridArr[i].room == "R") {
 		//	document.getElementById("t" + i.toString()).innerHTML = "R";

@@ -46,14 +46,14 @@ function RandomNPC0() {
 			return new GenerateNPC("Bat", "tiny", "beast", "unaligned", 12, 1, [1,4], 5, 5, 30, [2,15,8,1,12,4], [], [], [], [], ["blindsight 60"], ["none"], 0, ["echolocation","keen hearing"],{attack:["bite",0,5,[1,1],0,"piercing"]},[],[batCarcass]);
 			break;
 		case 2:
-			return new GenerateNPC("Rat", "tiny", "beast", "unaligned", 10, 1, [1,4], 20, 0, 0, [2,11,9,2,10,4], [], [], [], [], ["darkvision 30"], ["none"], 0, ["keen smell"],{attack:["bite",0,5,[1,1],0,"piercing"]},[]);
+			return new GenerateNPC("Rat", "tiny", "beast", "unaligned", 10, 1, [1,4], 20, 0, 0, [2,11,9,2,10,4], [], [], [], [], ["darkvision 30"], ["none"], 0, ["keen smell"],{attack:["bite",0,5,[1,1],0,"piercing"]},[],[]);
 			break;
 	};
 };
 function RandomNPC1_8() {
 	switch(Dice(1)) {
 		case 1:
-			return new GenerateNPC("Giant Rat", "small", "beast", "unaligned", 12, 7, [2,6], 30, 0, 0, [7,15,11,2,10,4], [], [], [], [], ["darkvision 60"], ["none"], 1/8, ["keen smell","pack tactics"],{attack:["bite",4,5,[4,1],2,"piercing"]},[]);
+			return new GenerateNPC("Giant Rat", "small", "beast", "unaligned", 12, 7, [2,6], 30, 0, 0, [7,15,11,2,10,4], [], [], [], [], ["darkvision 60"], ["none"], 1/8, ["keen smell","pack tactics"],{attack:["bite",4,5,[4,1],2,"piercing"]},[],[]);
 			break;
 	};
 };
