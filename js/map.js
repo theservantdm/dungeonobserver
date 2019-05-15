@@ -31,7 +31,7 @@ function CreateGraphicsGrid() {
 function CreateMapArray() {
 	gridArr = [];
 	for(i=0; i<100; i++) {
-		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: "", loot: []});
+		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: "", loot: [], trapType: "", trapState: 0});
 	}
 };
 
@@ -404,7 +404,16 @@ function AddEncounters() {
 		gridArr[i].room != "ST" && // do not place on start tile
 		gridArr[i].room != "SC" && // do not place on secret chambers
 		Dice(4) > 3) { // random chance to add an encounter
-			gridArr[i].encounter = "combat";
+			switch(Dice(3)) {
+				case 1:
+					gridArr[i].encounter = "trap";
+					gridArr[i].trapType = "hunting";
+					gridArr[i].trapState = 1;
+					break;
+				default:
+					gridArr[i].encounter = "combat";
+					break;
+			}
 		}
 	}
 };
@@ -551,7 +560,7 @@ function UpdateTileMap() {
 	for(i=0; i<gridArr.length; i++) { // do for the whole map array
 		document.getElementById("t" + i.toString()).innerHTML = ""; // clears the letters off the map
 		if(gridArr[i].open == 1) {
-			document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
+		//	document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
 		}
 		if(gridArr[i].room == "R") {
 		//	document.getElementById("t" + i.toString()).innerHTML = "R";
@@ -563,10 +572,14 @@ function UpdateTileMap() {
 		//	document.getElementById("t" + i.toString()).innerHTML = "D";
 		}
 		if(gridArr[i].encounter == "combat") {
-			//document.getElementById("t" + i.toString()).innerHTML = "-C-";
+		//	document.getElementById("t" + i.toString()).innerHTML = "-C-";
+		}
+		if(gridArr[i].encounter == "trap" &&
+			gridArr[i].trapState == 4) {
+			document.getElementById("t" + i.toString()).innerHTML = "-T-";
 		}
 		if(gridArr[i].explored < 1) {
-			document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,.5)";
+			document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,1)";
 		}
 		else if(gridArr[i].explored > 0) {
 			document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,0)";

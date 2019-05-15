@@ -48,10 +48,11 @@ OPC = {
 	damageBonus: 0,
 	offHand: "",
 	armor: "",
-	backpack: [leather,torch,dagger,torch],
+	backpack: [leather,dagger,lantern,oil,oil,torch,torch],
 	encumberance: 0,
 	light: 0,
 	lightLoc: "",
+	lightLife: 0,
 	encumberanceMax: 0,
 	currentPos: -1,
 	lastPos: -1,
@@ -238,7 +239,7 @@ function ClassAttributes(classOPC) {
 				OPC.CFfightingStyle = [1,0,0,0,0];
 				break;
 			case "footman":
-				OPC.skills = ["animal	handling", "athletics", "survival"];
+				OPC.skills = ["animal handling", "athletics", "survival"];
 				OPC.CFfightingStyle = [0,1,0,0,0];
 				break;
 			case "duelist":

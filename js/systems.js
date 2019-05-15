@@ -14,6 +14,9 @@ function TravelMove(nextMove) {
 		OPC.goal = "combat";
 		combatRounds = 0;
 	}
+	else if(gridArr[nextMove].encounter == "trap") {
+		OPC.goal = "trap";
+	}
 	OPC.lastPos = OPC.currentPos;
 	OPC.currentPos = nextMove;
 	UpdateTileMap();
@@ -119,7 +122,7 @@ function TravelLHR() {
 			}
 		}
 	if(OPC.currentPos == -1) {
-		for(var i = 0; i < gridArr.length; i++) { // find and store the start position and thi intial OPC locations
+		for(var i = 0; i < gridArr.length; i++) { // find and store the start position and the intial OPC locations
 			if(gridArr[i].room == "ST"){
 				OPC.currentPos = i;
 				OPC.lastPos = i - 10;
@@ -528,23 +531,28 @@ function EquipBest() {
 	// loop through all contents of the backpack
 	for(iLS = 0; iLS < OPC.backpack.length; iLS ++) {
 		if(OPC.backpack[iLS][0] == "l") { // is a light source
-			if(lightPosOH == -1) { // no light source assigned
-				lightPosOH = iLS;
-				lightValOH = OPC.backpack[iLS][2];
+			if(OPC.backpack[iLS][1] == "lantern" && // is a lantern
+				!OPC.backpack.includes(oil)) { // backpack doesn't have oil
 				continue;
 			}
-			else if(lightValOH > OPC.backpack[iLS][2]) { // has a worse radius
-				continue;
+			else {
+				if(lightPosOH == -1) { // no light source assigned
+					lightPosOH = iLS;
+					lightValOH = OPC.backpack[iLS][2];
+					continue;
+				}
+				else if(lightValOH > OPC.backpack[iLS][2]) { // has a worse radius
+					continue;
+				}
+				else if(OPC.backpack[iLS][2] == lightValOH && // equal radius
+				OPC.backpack[lightPosOH][3] <= OPC.backpack[iLS][3]) { // not a weight improvement
+					continue;
+				}
+				else { // use this light source
+					lightPosOH = iLS;
+					lightValOH = OPC.backpack[iLS][2];
+				}
 			}
-			else if(OPC.backpack[iLS][2] == lightValOH && // equal radius
-			OPC.backpack[lightPosOH][3] <= OPC.backpack[iLS][3]) { // not a weight improvement
-				continue;
-			}
-			else { // use this light source
-				lightPosOH = iLS;
-				lightValOH = OPC.backpack[iLS][2];
-			}
-			
 		}
 		else if(OPC.backpack[iLS][8] > 0) { // has a light radius
 			switch(OPC.backpack[iLS][0]) {
@@ -696,6 +704,13 @@ Order priority needs to be laid out for each build, and then the function should
 	// off hand shield
 	OPC.offHand = OPC.backpack[shieldPosBP]; // put new light in off hand
 	OPC.backpack.splice(shieldPosBP, 1); // remove new light from pack
+	if(OPC.offHand[1] == "torch") {
+		OPC.lightLife = 600; // update torch life
+	}
+	else if(OPC.offHand[1] == "lantern") {
+		OPC.backpack.splice(OPC.backpack.indexOf(oil),1); // remove the first instance of oil in the backpack
+		OPC.lightLife = 3600; // increase the light life to 6 hours
+	}
 	// armor
 	OPC.armor = OPC.backpack[armorPosBP]; // put new armor on
 	OPC.backpack.splice(armorPosBP, 1); // remove new armor from pack
@@ -709,6 +724,7 @@ Order priority needs to be laid out for each build, and then the function should
 	OPC.damageBonus = CalculateDamageBonus();
 	WriteOPC();
 };
+// End of EquipBest
 
 // this function will loot for the OPC
 function Loot() {
@@ -722,11 +738,52 @@ function Loot() {
 	EquipBest();
 	OPC.goal ="travel";
 }
-/*
-add item to inventory
-- check for space
-- check against value and drop lowest
-*/
+
+// this function will deal damage to the OPC
+function DamageOPC(damageAmount) {
+	OPC.hpCurrent -= damageAmount;
+	if(OPC.hpCurrent < 1) {
+		if(OPC.hpCurrent <= OPC.hpMax * -1) {
+			OPC.state = "dead";
+			OPC.goal = "none";	
+			combatStage = 0;
+		}
+		else {
+			OPC.hpCurrent = 0;
+			OPC.state = "unconscious";
+		}
+	}
+	WriteOPC();
+}
+
+function LightSource() {
+	if(OPC.offHand[1] == "torch" || // check to see if a torch is equipped
+		OPC.offHand[1] == "lantern") { // check to see if a lantern is equipped
+		OPC.lightLife --; // reduce light life
+	}
+	if(OPC.lightLife < 1) { // check for spent light source
+		if(OPC.offHand[1] == "torch") { // check to see if a torch is equipped
+			OPC.offHand = []; // destroy torch in OPC.offHand
+			feedback = OPC.name + "'s torch flickers and burns out..."; // create feedback
+			// do a torch swap here (just destroy one in backpack) and add variant feedback (see lantern oil)
+		}
+		if(OPC.offHand[1] == "lantern") { // check to see if a lantern is equipped
+			if(OPC.backpack.includes(oil)) { // check backpack for oil
+				OPC.backpack.splice(OPC.backpack.indexOf(oil),1); // remove the first instance of oil in the backpack
+				OPC.lightLife = 3600; // increase the light life to 6 hours
+				feedback += OPC.name + " tops up their lantern with a flask of oil."; // update feedback
+			}
+			else { // no oil in backpack
+				feeback += "The oil has run out in " + OPC.name + "'s lantern"; // update feedback
+				EquipBest(); // run EquipBest() to find new light source
+			}
+			feedback = OPC.name + ""; // create feedback
+		}
+		
+		document.getElementById("opc-feedback").innerHTML = feedback;// update feedback
+		// EquipBest();
+	}
+};
 
 var combatStage = 0;
 // this function will resolve combat
@@ -973,6 +1030,129 @@ turn 2nd
 	bonus action
 */
 
+// This function will determine what occurs when a trap is encountered
+function Trap() {
+	trapDC = 10;
+	switch(gridArr[OPC.currentPos].trapState) {
+		case 1: // trap set and waiting
+			roll = Dice(20);
+			rollBonus = Math.floor(OPC.abilityScores[4]/2)-5; // add Wisdom modifier
+			if(OPC.skills.includes("perception")) { //check to see if perception is a skill
+					rollBonus += OPC.proficiencyBonus; // add proficiency bonus
+				}
+			feedback = "Wisdom (Perception): " + roll + " + " + rollBonus + " = " + (roll + rollBonus) + "<br>";
+			if(roll + rollBonus >= trapDC) { // make an wisdom perception check to see if you notice the trap trigger
+				feedback += "What have we here..?";
+				gridArr[OPC.currentPos].trapState = 2; //	set switch to 2
+			}
+			else {
+				feedback += "*shrug*";
+				gridArr[OPC.currentPos].trapState = 5; //	set switch to 5
+			}
+			break;
+		case 2: // trigger detected
+			roll = Dice(20); //	INT (investigation) check to understand trap
+			rollBonus = Math.floor(OPC.abilityScores[3]/2)-5; // add Intelligence modifier
+			if(OPC.skills.includes("investigation")) { //check to see if investigation is a skill
+					rollBonus += OPC.proficiencyBonus; // add proficiency bonus
+				}
+			feedback = "Intelligence (Investigation): " + roll + " + " + rollBonus + " = " + (roll + rollBonus) + "<br>";
+			if(roll + rollBonus >= trapDC + 5) { // great success
+				feedback += "Simple enough...";
+				gridArr[OPC.currentPos].trapState = 3; //	set switch to 3
+			}
+			else if (roll + rollBonus >= trapDC) { // success
+				feedback += "Should be simple to avoid that...";
+				gridArr[OPC.currentPos].trapState = 4; //	set switch to 4
+			}
+			else if (roll + rollBonus < trapDC) { // failure
+				feedback += "This is too easy...";
+				gridArr[OPC.currentPos].trapState = 5; // set switch to 5
+			}
+			break;
+		case 3: // trap understood completely			
+			feedback = "*Triggers the trap from a safe distance*<br>"; // message to observer
+			gridArr[OPC.currentPos].trapState = 0; //	set switch to 0
+		//	gridArr[OPC.currentPos].trapType = ""; //	remove trap type (not required)
+			gridArr[OPC.currentPos].encounter = ""; //	remove encounter type
+			OPC.goal = "travel";
+			break;
+		case 4: // trap understood
+			roll = DiceAdvantage(20); // bypass trap with Dexterity (Acrobatics) check at advantage
+			rollBonus = Math.floor(OPC.abilityScores[1]/2)-5; // add Dexterity modifier
+			if(OPC.skills.includes("acrobatics")) { // check to see if acrobatics is a skill
+					rollBonus += OPC.proficiencyBonus; // add proficiency bonus
+				}
+			feedback = "Dexterity (Acrobatics): " + roll + " + " + rollBonus + " = " + (roll + rollBonus) + "<br>";
+			if(roll + rollBonus >= trapDC) { // successfully avoids trap
+				feedback += "*Avoids trap*"; // observer feedback
+				// the trap stays active in this tile, so the OPC will continue to encounter it going forward, we leave the gridArr trapState and encounter as is
+				OPC.goal = "travel";
+			}
+			else { // triggers trap
+				feedback += "*Triggers trap*";
+				gridArr[OPC.currentPos].trapState = 5; // set switch to 5
+			}
+			break;
+		case 5: // trap triggered
+			roll = Dice(20); //	trigger trap accidentally, Dexterity saving throw
+			rollBonus = Math.floor(OPC.abilityScores[1]/2)-5; // add Dexterity modifier
+			if(OPC.savingThrows.includes("dexterity")) { // check to see if dexterity is a saving throw
+					rollBonus += OPC.proficiencyBonus; // add proficiency bonus
+				}
+			feedback = "Dexterity saving throw: " + roll + " + " + rollBonus + " = " + (roll + rollBonus) + "<br>";
+			if(roll + rollBonus >= trapDC) { // success - set switch to 0, set trapType to ""
+				feedback += "The trap triggers, but " + OPC.name + " dodges."; // feedback
+				gridArr[OPC.currentPos].trapState = 0; // set switch to 0
+				gridArr[OPC.currentPos].encounter = ""; //	remove encounter type
+				OPC.goal = "travel";
+			}
+			else if(roll + rollBonus < trapDC) { // failure - set switch to 6
+				DamageOPC(Dice(4)); // deal 1d4 damage to the OPC
+				if(OPC.hpCurrent == 0) {
+					OPC.state = "stable";
+					OPC.goal = "short rest";
+				}
+				feedback += "The trap triggers and " + OPC.name + " is caught!"; // feedback
+				gridArr[OPC.currentPos].trapState = 6; // set switch to 6
+			}
+			break;
+		case 6: // ongoing effect
+			roll = Dice(20); //	attempt to break free with Strength (Athletics) check
+			rollBonus = Math.floor(OPC.abilityScores[0]/2)-5; // add Strength modifier
+			if(OPC.skills.includes("athletics")) { // check to see if athletics is a skill
+					rollBonus += OPC.proficiencyBonus; // add proficiency bonus
+				}
+			feedback = "Strength (Athletics): " + roll + " + " + rollBonus + " = " + (roll + rollBonus) + "<br>";
+			if(roll + rollBonus >= trapDC) { //	success - set switch to 0
+				feedback += OPC.name + " successfully frees themselves from the trap."; // feedback
+				gridArr[OPC.currentPos].trapState = 0; // set switch to 0
+				gridArr[OPC.currentPos].encounter = ""; //	remove encounter type
+				OPC.goal = "travel";
+			}
+			if(roll + rollBonus < trapDC) { //	failure - damage, no change
+				DamageOPC(1); // deal 1 damage to the OPC
+				if(OPC.hpCurrent == 0) {
+					OPC.state = "stable";
+					OPC.goal = "short rest";
+				}
+				feedback += OPC.name + " fails to free themselves from the trap."; // feedback
+			}			
+			break;
+		default:
+		console.log("trap state: " + gridArr[OPC.currentPos].trapState);
+			break;
+	}
+	document.getElementById("opc-feedback").innerHTML=feedback;
+	if(OPC.goal == "travel") {
+		OPC.experience += (trapDC - 5) * 5;
+		//************************************************************************************************
+		// currently this gives XP everytime the OPC goes past a trap in state 4, that will have to change
+		//************************************************************************************************
+		WriteOPC();// write OPC 
+	}
+};
+
 // this function will heal OPC by the value of 1 hit dice + Con mod (to be expanded later)
 function ShortRest() {
 	if(OPC.hdRemaining >= 1) { // has hit dice remaning
@@ -986,44 +1166,60 @@ function ShortRest() {
 			break;
 		}
 		OPC.state = "conscious";
-		OPC.goal = "return";
-		document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining;
-		roundCounter += 600;
-		document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds;
+		if(gridArr[OPC.currentPos].encounter == "trap") {
+			OPC.goal = "trap";
+		}
+		else {
+			OPC.goal = "return";
+		}
+		document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining; // update HP display
+		roundCounter += 600; // add an hour to the timer
+		if(gridArr[OPC.currentPos].room != "ST") {
+			OPC.lightLife -= 600; // remove an hour from the life of the light source
+		}
+		document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds; // update the timer display
 		return;
 	}
-	else if(OPC.state == "unconscious") {
+	else if(OPC.state == "unconscious" ||
+			OPC.state == "stable") {
 		document.getElementById("opc-feedback").innerHTML="An hour passes...";
 		OPC.hpCurrent = Math.max(OPC.hpCurrent, 1);
 		OPC.state = "conscious";
 	}
-	OPC.goal = "exit";
-	AssignPathValue();
-	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining;
-	roundCounter += 600;
-	document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds;
+	if(gridArr[OPC.currentPos].encounter == "trap") {
+		OPC.goal = "trap";
+	}
+	else {
+		OPC.goal = "exit";
+		AssignPathValue();
+	}
+	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining; // update HP & hit die display
+	roundCounter += 600; // add 1 hour to timer
+	document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds; // update timer display
 };
 
 // this function will heal OPC by the value of 1 hit dice + Con mod (to be expanded later)
 function LongRest() {
 //	level up?
 	AdvanceXP = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000]; // XP in array to compare to level
+	feedback = "Eight hours pass...";
 	if(AdvanceXP[OPC.level] <= OPC.experience) {
-		console.log("level up!");
+	//	console.log("level up!");
 		OPC.level ++; // increment level
-		OPC.hpMax += (Dice(OPC.hdValue) + Math.floor(OPC.abilityScores[2]/2) - 5); // increase HP
+		newHP = Dice(OPC.hdValue) + Math.floor(OPC.abilityScores[2]/2) - 5; // roll HP
+		OPC.hpMax += newHP; // increase HP
 		OPC.proficiencyBonus = Math.ceil(Math.max(OPC.level - 1,1) / 4) + 1; // increase proficiency bonus
 		// add abilities
+		feedback += "<br>" + OPC.name + " levels up!<br>HP increased by " + newHP;
 		WriteOPC();// write OPC 
 	}
 // rest...
-	document.getElementById("opc-feedback").innerHTML="Eight hours pass..";
-	OPC.hpCurrent = OPC.hpMax;
-//	OPC.hdRemaining = OPC.level; // should be + 1/2 level round down, min 1, max level
-	OPC.hdRemaining = Math.min(OPC.hdRemaining + Math.max(Math.floor(OPC.level / 2),1),OPC.level)
-	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining;
-	roundCounter += 4800;
-	document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds;
+	document.getElementById("opc-feedback").innerHTML = feedback; // update feedback display
+	OPC.hpCurrent = OPC.hpMax; // heal to max HP
+	OPC.hdRemaining = Math.min(OPC.hdRemaining + Math.max(Math.floor(OPC.level / 2),1),OPC.level) // recover 1/2 leve in hit dice
+	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining; // update hit point & dice display
+	roundCounter += 4800; // add 8 hours to the timer
+	document.getElementById("round-timer").innerHTML='hrs:' + hours + ' /  min:' + minutes + ' / rnd:' + rounds; // update the timer display
 	OPC.state = "conscious";
 	OPC.goal = "travel";
 };
@@ -1044,6 +1240,7 @@ function RoundTimer() {
 		document.getElementById("opc-feedback").innerHTML=OPC.name + " has died...";
 		return;
 	}
+	// dictate OPC actions
 	switch(OPC.goal) {
 	case "travel":
 		TravelLHR();
@@ -1068,12 +1265,18 @@ function RoundTimer() {
 		break;
 	case "loot":
 		Loot();
+		break;
+	case "trap":
+		Trap();
+		break;
 	case "none":
 		break;
 	default:
 		console.log("goal, default");
 		break;
 	}
+	// slowly reduce light sources
+	LightSource();
 	nextRound = setTimeout(RoundTimer, 6000); // re-runs the RoundTimer function every 6 seconds
 };
 
@@ -1088,10 +1291,8 @@ function GameStart() {
 
 /*
 To Do List
+- Merchant at long rest (selling, restocking, upgrading)
 - preload img folder
-- encounters
-- traps
-- loot and equipment system
-- leveling system
+- boss fight for better loot
 - quest system
 */

@@ -36,6 +36,7 @@ var lantern = ["l","lantern",30,500,2,""];
 // [type,name,weight,value]
 var batCarcass = ["m","bat carcass",1,1,""];
 var giantBatWing = ["m","giant bat wing",20,100,""];
+var oil = ["m","oil",1,10,""];
 
 // Random Treasure Tables
 
