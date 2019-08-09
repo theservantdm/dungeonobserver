@@ -1,7 +1,7 @@
 /*
 Dungeon Observer JavaScript
 Created: 30/12/2018
-Updated: 19/01/2019
+Updated: 12/06/2019
 By:Derek Gilmore
 Twitter: @TheServantDM
 
@@ -11,7 +11,26 @@ This file contains the code for the character generation and display
 // this function responds to the observer button press
 function ObserverButton() {
 	clearTimeout(nextRound);
+	clearTimeout(roundProgress);
 	RoundTimer();
+}
+
+// this function responds to the zoom button press
+function ZoomButton() {
+	if(gridZoom == 10) {
+		gridZoom = 3;
+	}
+	else {
+		gridZoom = 10;
+		UpdateGraphicsZoomMap();
+	}
+	UpdateTileMap();
+	UpdateNoteGrid();
+}
+
+// this function responds to the test button press
+function TestButton() {
+	console.log(gridArr);
 }
 
 // sets the OPC object
@@ -48,7 +67,8 @@ OPC = {
 	damageBonus: 0,
 	offHand: "",
 	armor: "",
-	backpack: [leather,dagger,lantern,oil,oil,torch,torch],
+	backpack: [leather,dagger,rations,rations,rations,rations,rations,torch,torch,torch,torch,torch],
+	copper: 10,
 	encumberance: 0,
 	light: 0,
 	lightLoc: "",
@@ -56,7 +76,8 @@ OPC = {
 	encumberanceMax: 0,
 	currentPos: -1,
 	lastPos: -1,
-	goal: "travel"
+	goal: "travel",
+	encounter: "",
 };
 
 // this function generates a random name for the OPC
@@ -350,6 +371,7 @@ function CalculateDamageBonus(weapon = OPC.mainHand) {
 function CalculateEncumberance() { // STR * 5, * 10
 	OPC.encumberanceMax = OPC.abilityScores[0] * 10;
 	OPC.encumberance = 0;
+// equipped gear
 	switch(OPC.mainHand[0]) { // whatever is in the main hand
 		case "a":
 			OPC.encumberance += OPC.mainHand[6];
@@ -395,6 +417,7 @@ function CalculateEncumberance() { // STR * 5, * 10
 			OPC.encumberance += OPC.armor[5];
 			break;
 	}
+// backpack
 	for(iE = 0; iE < OPC.backpack.length; iE++) { // go through all contents of the backpack
 		switch(OPC.backpack[iE][0]){
 			case "a":
@@ -412,6 +435,15 @@ function CalculateEncumberance() { // STR * 5, * 10
 				break;			
 		}
 	}
+// coins
+	cp = OPC.copper;
+	pp = Math.floor(cp / 1000);
+	cp -= pp * 1000;
+	gp = Math.floor(cp / 100);
+	cp -= gp * 100;
+	sp = Math.floor(cp / 10);
+	cp -= sp * 10;
+	OPC.encumberance += Math.ceil((cp + sp + gp + pp) / 50);
 }
 
 // this function writes the character information to the page
@@ -422,19 +454,28 @@ function WriteOPC() {
 	document.getElementById("opc-ac").innerHTML='AC ' + OPC.AC;
 	document.getElementById("opc-hp").innerHTML='HP ' + OPC.hpCurrent + " / " + OPC.hpMax + " - HD: " + OPC.hdRemaining;
 	document.getElementById("opc-speed").innerHTML='Sp ' + OPC.speed;
-	document.getElementById("ability-str").innerHTML='STR ' + OPC.abilityScores[0];
-	document.getElementById("ability-dex").innerHTML='DEX ' + OPC.abilityScores[1];
-	document.getElementById("ability-con").innerHTML='CON ' + OPC.abilityScores[2];
-	document.getElementById("ability-int").innerHTML='INT ' + OPC.abilityScores[3];
-	document.getElementById("ability-wis").innerHTML='WIS ' + OPC.abilityScores[4];
-	document.getElementById("ability-cha").innerHTML='CHA ' + OPC.abilityScores[5];
+	document.getElementById("ability-str").innerHTML='STR<br>' + OPC.abilityScores[0];
+	document.getElementById("ability-dex").innerHTML='DEX<br>' + OPC.abilityScores[1];
+	document.getElementById("ability-con").innerHTML='CON<br>' + OPC.abilityScores[2];
+	document.getElementById("ability-int").innerHTML='INT<br>' + OPC.abilityScores[3];
+	document.getElementById("ability-wis").innerHTML='WIS<br>' + OPC.abilityScores[4];
+	document.getElementById("ability-cha").innerHTML='CHA<br>' + OPC.abilityScores[5];
 	document.getElementById("opc-saves").innerHTML='Saving Throws: ' + OPC.savingThrows[0] + ", " + OPC.savingThrows[1];
-	document.getElementById("opc-skills").innerHTML='Skills: ' + OPC.skills[0] + ", " + OPC.skills[1] + ", " + OPC.skills[0];
+	document.getElementById("opc-skills").innerHTML='Skills: ' + OPC.skills[0] + ", " + OPC.skills[1] + ", " + OPC.skills[2];
 	document.getElementById("opc-languages").innerHTML='Languages: ' + OPC.languages[0] + ", " + OPC.languages[1];
 	document.getElementById("opc-encumberance").innerHTML=OPC.encumberance + " / " + OPC.encumberanceMax;
 	document.getElementById("opc-main-hand").innerHTML="Main hand: " + OPC.mainHand[1];
 	document.getElementById("opc-off-hand").innerHTML="Off Hand: " + OPC.offHand[1];
 	document.getElementById("opc-armor").innerHTML="Armor: " + OPC.armor[1];
+	cp = OPC.copper;
+	pp = Math.floor(cp / 1000);
+	cp -= pp * 1000;
+	gp = Math.floor(cp / 100);
+	cp -= gp * 100;
+	sp = Math.floor(cp / 10);
+	cp -= sp * 10;
+	document.getElementById("opc-coin").innerHTML="pp: " + pp + " / gp: " + gp + " / sp: " + sp + " / cp: " + cp;
+	document.getElementById("opc-goal").innerHTML="G:" + OPC.goal + ", E:" + OPC.encounter  + ", S:" + OPC.state;
 	items = "";
 	for(iBP = 0; iBP < OPC.backpack.length; iBP ++) {
 		if(items != "") {
@@ -443,6 +484,22 @@ function WriteOPC() {
 		items += OPC.backpack[iBP][1];	
 	}
 	document.getElementById("opc-items").innerHTML="Backpack: " + items;
+//	document.getElementById("opc-light").innerHTML="Light Life: " + OPC.lightLife;
+	if(OPC.lightLoc == "offHand") {
+		switch(OPC.offHand) {
+			case torch:
+				lightLifeBar = OPC.lightLife / 6;
+				break;
+			case lantern:
+				lightLifeBar = OPC.lightLife / 36;			
+				break;
+			default:
+				lightLifeBar = 100;
+				break;
+		}
+	}
+	document.getElementById("light-life-bar").style.width = lightLifeBar + "%";
+	document.getElementById("light-life-bar").style.backgroundColor = "rgba(255," + lightLifeBar * 2.55 + ",0,1)";
 }
 
 // this function creates the OPC
@@ -459,16 +516,3 @@ function GenerateCharacter() {
 	CalculateEncumberance();
 	WriteOPC();
 }
-
-
-/*
-To Do List
-- preload img folder
-- locked doors between room
-- Create new pathfinding function to return to a specific point (safe room for resting) using only explored tiles
-- encounters
-- traps
-- loot and equipment system
-- leveling system
-- quest system
-*/

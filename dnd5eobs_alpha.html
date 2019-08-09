@@ -42,14 +42,26 @@
 				<p id = "opc-main-hand">---</p>
 				<p id = "opc-off-hand">---</p>
 				<p id = "opc-armor">---</p>
+				<p id = "opc-coin">---</p>
 				<p id = "opc-items">---</p>
+				<div id = "light-life">
+					<p id = "opc-light">Light Life</p>
+					<div id = "light-life-bar"></div>
+				</div>
+				<p id = "opc-goal">---</p>
 			</div>
-			<div class="opc-button" onclick="ObserverButton()">
-				<p>Click here to skip ahead</p>
+			<div class="opc-button" onclick="ZoomButton()">
+				<p>Zoom</p>
+			</div>
+			<div class="opc-button" onclick="TestButton()">
+				<p>Click here to test something</p>
 			</div>
 			<div class = round-timer>
 				<h2>Timer</h2>
 				<p id="round-timer">0</p>
+				<div id="round-progress">
+					<div id="round-progress-bar"></div>
+				</div>
 			</div>
 		</div>
 		<div class = "zone" id = "zone-map">
@@ -57,7 +69,13 @@
 			</div>
 			<div class = "map-layer" id = "tile-map">
 			</div>
-			<div class = "map-layer" id = "elements-map">
+			<div class = "map-layer" id = "graphics-map-z">
+			</div>
+			<div class = "map-layer" id = "tile-map-z">
+			</div>
+			<div class = "map-layer" id = "note-map-z">
+			</div>
+			<div class = "map-button" onclick="ObserverButton()">
 			</div>
 		</div>
 		<div class = "zone" id = "zone-npc">

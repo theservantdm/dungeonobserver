@@ -1,14 +1,15 @@
 /*
 Dungeon Observer JavaScript
 Created: 30/12/2018
-Updated: 19/01/2019
+Updated: 13/06/2019
 By:Derek Gilmore
 Twitter: @TheServantDM
 
 This file contains the code for the map generation and display
 */
-
+var gridZoom = 10;
 var gridArr = [];
+
 // this function generates the HTML for the grid
 function CreateTileGrid() {
 	var gridHTML = "";
@@ -16,24 +17,44 @@ function CreateTileGrid() {
 		gridHTML += '<div class="grid" id="t' + i +'"></div>';
 	}
 	document.getElementById("tile-map").innerHTML=gridHTML;
-};
+	var gridHTMLz = "";
+	for(i=0; i<9; i++) {
+		gridHTMLz += '<div class="grid-z" id="tz' + i +'"></div>';
+	}
+	document.getElementById("tile-map-z").innerHTML=gridHTMLz;
+}
+
+// this function generates the HTML for the grid
+function CreateNoteGrid() {
+	var gridHTMLz = "";
+	for(i=0; i<9; i++) {
+		gridHTMLz += '<div class="note-z" id="nz' + i +'"></div>';
+	}
+	document.getElementById("note-map-z").innerHTML=gridHTMLz;
+}
 
 // this function generates the HTML for the grid
 function CreateGraphicsGrid() {
 	var gridHTML = "";
-	for(i=0; i<100; i++) {
+	for(i=0; i<100; i++) { // 10 x10
 		gridHTML += '<div class="grid" id="g' + i +'"></div>';
 	}
 	document.getElementById("graphics-map").innerHTML=gridHTML;
-};
+	var gridHTMLz = "";
+	for(i=0; i<9; i++) { // 3x3
+		gridHTMLz += '<div class="grid-z" id="gz' + i +'"></div>';
+	}
+	document.getElementById("graphics-map-z").innerHTML=gridHTMLz;
+}
 
 // this function builds the array for the map
 function CreateMapArray() {
 	gridArr = [];
 	for(i=0; i<100; i++) {
-		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: "", loot: [], trapType: "", trapState: 0});
+		gridArr.push({open: 0, room: "", explored: 0, sDoor: 0, pathValue: 0, encounter: "", nonPC: "", loot: [], trapType: "", trapState: 0, notes: ""});
+
 	}
-};
+}
 
 // this function will return the X & Y positions of the gridArray
 function GetXY(num) {
@@ -41,7 +62,7 @@ function GetXY(num) {
 	xyPos[1] = Math.floor(num / 10);
 	xyPos[0] = num - (xyPos[1] * 10);
 	return xyPos;
-};
+}
 
 // this function will return an array for the path between two positions on the gridArr
 function BestPathXY(start, end) {
@@ -74,7 +95,7 @@ function BestPathXY(start, end) {
 		}
 	}
 	return pathArr;
-};
+}
 
 // this function will populate the array with rooms
 function PopulateMapRooms() {
@@ -98,7 +119,7 @@ function PopulateMapRooms() {
 	gridArr[rST].room = "ST";
 	gridArr[rST].explored = 1;
 	gridArr[rST].pathValue = 1;
-};
+}
 
 // this function will populate the array with tunnels
 function PopulateMapTunnels() {
@@ -252,7 +273,7 @@ function PopulateMapTunnels() {
 			}
 			break;
 	}
-};
+}
 
 // this function will seed some random open space around the map
 function PopulateRandomTunnels() {
@@ -287,7 +308,7 @@ function PopulateRandomTunnels() {
 		}
 	}
 	// update the SC
-};
+}
 
 // this function will add a secret room that is connected to an existing room or tunnel
 function PopulateSecretRoom() {
@@ -412,11 +433,12 @@ function AddEncounters() {
 					break;
 				default:
 					gridArr[i].encounter = "combat";
+					gridArr[i].nonPC = BatsAndRats();
 					break;
 			}
 		}
 	}
-};
+}
 
 // this function will assign a vaule to each open tile based on the distance from the start tile 
 function AssignPathValue() {
@@ -436,7 +458,7 @@ function AssignPathValue() {
 					}
 				}
 				iEast = iPV + 1;
-				if(iEast <= 100 && // is on map
+				if(iEast < 100 && // is on map
 				gridArr[iEast].explored > 0 && // only check explored places
 				gridArr[iEast].room != "SC" && // is not a secret chamber
 				Math.floor(iEast / 10) == Math.floor(iPV / 10) && // is on same Y axis as iPV
@@ -470,7 +492,8 @@ function AssignPathValue() {
 			}
 		}
 	}
-};
+	UpdateTileMap();
+}
 
 // this function will update the graphics map based on room type in the array
 function UpdateGraphicsMap() {
@@ -546,49 +569,292 @@ function UpdateGraphicsMap() {
 			else {
 				graphic = "url(img/png/room" + img + rotation + ".png)";
 			}
-		//document.getElementById("g" + i.toString()).innerHTML = '<img class = "graphic" src="img/' + graphic + '" style="transform:rotate(' + rotation + 'deg)"></img>';
 		document.getElementById("g" + i.toString()).style.backgroundImage = graphic;
 		}
 		else {
-			document.getElementById("g" + i.toString()).style.backgroundImage = "";
+			document.getElementById("g" + i.toString()).style.backgroundImage = 'none';
 		}
 	}
-};
+}
+
+// this function will update the graphics map based on room type in the array
+function UpdateGraphicsZoomMap() {
+	switch(gridZoom) {
+		case 3:
+			zoomPosition = [OPC.currentPos -11, OPC.currentPos -10, OPC.currentPos -9, OPC.currentPos -1, OPC.currentPos, OPC.currentPos +1, OPC.currentPos +9, OPC.currentPos +10, OPC.currentPos +11];
+			for(i = 0; i < zoomPosition.length; i ++) {
+				document.getElementById("gz" + i.toString()).style.backgroundImage = "none";
+				document.getElementById("gz" + i.toString()).style.backgroundColor = 'RGBA(255,255,255,1)';
+			}
+			for(i = 0; i < gridArr.length; i ++) { // do for the whole map array
+				if(zoomPosition.includes(i)) {
+					if (gridArr[i].open > 0) { // only work on open areas of the map
+						exits = GetExits(i);
+						switch(exits) { // determine which graphic to display to reflect the available exits
+							case 1:
+								img = "D";
+								rotation = "270";
+								break;
+							case 10:
+								img = "D";
+								rotation = "180";
+								break;
+							case 11:
+								img = "L";
+								rotation = "180";
+								break;
+							case 100:
+								img = "D";
+								rotation = "90";
+								break;
+							case 101:
+								img = "I";
+								rotation = "90";
+								break;
+							case 110:
+								img = "L";
+								rotation = "90";
+								break;
+							case 111:
+								img = "T";
+								rotation = "90";
+								break;
+							case 1000:
+								img = "D";
+								rotation = "0";
+								break;
+							case 1001:
+								img = "L";
+								rotation = "270";
+								break;
+							case 1010:
+								img = "I";
+								rotation = "0";
+								break;
+							case 1011:
+								img = "T";
+								rotation = "180";
+								break;
+							case 1100:
+								img = "L";
+								rotation = "0";
+								break;
+							case 1101:
+								img = "T";
+								rotation = "270";
+								break;
+							case 1110:
+								img = "T";
+								rotation = "0";
+								break;
+							case 1111:
+								img = "X";
+								rotation = "";
+								break;
+						}
+						if(gridArr[i].room == "T" ||
+						gridArr[i].room == "R") {
+							graphic = "url(img/png/tunnel" + img + rotation + ".png)";
+						}
+						else {
+							graphic = "url(img/png/room" + img + rotation + ".png)";
+						}
+						document.getElementById("gz" + zoomPosition.indexOf(i).toString()).style.backgroundImage = graphic;
+					}
+				}
+			}
+			break;
+		case 10:
+			for(i=0; i < 9; i ++) {
+				document.getElementById("gz" + i.toString()).style.backgroundImage = 'none';
+				document.getElementById("gz" + i.toString()).style.backgroundColor = 'rgba(255,255,255,0)';
+			}
+			break;
+	}
+}
+
+// this function will update the note grid
+function UpdateNoteGrid() {
+	zoomPosition = [OPC.currentPos -11, OPC.currentPos -10, OPC.currentPos -9, OPC.currentPos -1, OPC.currentPos, OPC.currentPos +1, OPC.currentPos +9, OPC.currentPos +10, OPC.currentPos +11];
+	for(i = 0; i < zoomPosition.length; i ++) {
+		switch(gridZoom) {
+			case 3:
+				switch(i) {
+					case 0:
+						gridValid = Math.floor(zoomPosition[i] / 10) + 1 == Math.floor(zoomPosition[4] / 10)						
+						break;
+					case 3:
+						gridValid = Math.floor(zoomPosition[i] / 10) == Math.floor(zoomPosition[4] / 10)						
+						break;
+					case 6:
+						gridValid = Math.floor(zoomPosition[i] / 10) - 1 == Math.floor(zoomPosition[4] / 10)						
+						break;
+					case 2:
+						gridValid = Math.floor(zoomPosition[i] / 10) + 1 == Math.floor(zoomPosition[4] / 10)
+						break;
+					case 5:
+						gridValid = Math.floor(zoomPosition[i] / 10) == Math.floor(zoomPosition[4] / 10)
+						break;
+					case 8:
+						gridValid = Math.floor(zoomPosition[i] / 10) - 1 == Math.floor(zoomPosition[4] / 10)
+						break;
+					default:
+						gridValid = true;
+						break;
+				}
+				if(zoomPosition[i] >= 0 &&
+					zoomPosition[i] < 100 &&
+					gridValid) {
+					if(gridArr[zoomPosition[i]].notes !== "") {
+						document.getElementById("nz" + i.toString()).innerHTML = "<p>" + gridArr[zoomPosition[i]].notes + "</p>";
+//						document.getElementById("nz" + i.toString()).style.backgroundColor = "rgba(255,255,255,.5)";
+					}
+					else {
+						document.getElementById("nz" + i.toString()).innerHTML = "";
+						document.getElementById("nz" + i.toString()).style.backgroundColor = "rgba(0,0,0,0)";						
+					}
+				}
+				else {
+//					document.getElementById("nz" + i.toString()).innerHTML = "";
+				}
+				break;
+			case 10:
+				document.getElementById("nz" + i.toString()).innerHTML = "";
+				document.getElementById("nz" + i.toString()).style.backgroundColor = "rgba(0,0,0,0)";
+				break;		
+		}		
+	}
+}
 
 // this function will update the tile map based on room type in the array
 function UpdateTileMap() {
-	for(i=0; i<gridArr.length; i++) { // do for the whole map array
-		document.getElementById("t" + i.toString()).innerHTML = ""; // clears the letters off the map
-		if(gridArr[i].open == 1) {
-		//	document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
-		}
-		if(gridArr[i].room == "R") {
-		//	document.getElementById("t" + i.toString()).innerHTML = "R";
-		}
-		if(gridArr[i].room == "SC") {
-		//	document.getElementById("t" + i.toString()).innerHTML = "SC";
-		}
-		if(gridArr[i].sDoor > 0) {
-		//	document.getElementById("t" + i.toString()).innerHTML = "D";
-		}
-		if(gridArr[i].encounter == "combat") {
-		//	document.getElementById("t" + i.toString()).innerHTML = "-C-";
-		}
-		if(gridArr[i].encounter == "trap" &&
-			gridArr[i].trapState == 4) {
-			document.getElementById("t" + i.toString()).innerHTML = "-T-";
-		}
-		if(gridArr[i].explored < 1) {
-			document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,1)";
-		}
-		else if(gridArr[i].explored > 0) {
-			document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,0)";
-		}
+// set up a dynamic array based on current OPC position to populate the tiles
+	zoomPosition = [OPC.currentPos -11, OPC.currentPos -10, OPC.currentPos -9, OPC.currentPos -1, OPC.currentPos, OPC.currentPos +1, OPC.currentPos +9, OPC.currentPos +10, OPC.currentPos +11];
+	switch(gridZoom) {
+		case 3: // update the tile map for a 3x3 grid (zoomed in)
+			for(i=0; i < zoomPosition.length; i++) {
+				switch(i) {
+						case 0:
+							gridValid = Math.floor(zoomPosition[i] / 10) + 1 == Math.floor(zoomPosition[4] / 10)						
+							break;
+						case 3:
+							gridValid = Math.floor(zoomPosition[i] / 10) == Math.floor(zoomPosition[4] / 10)						
+							break;
+						case 6:
+							gridValid = Math.floor(zoomPosition[i] / 10) - 1 == Math.floor(zoomPosition[4] / 10)						
+							break;
+						case 2:
+							gridValid = Math.floor(zoomPosition[i] / 10) + 1 == Math.floor(zoomPosition[4] / 10)
+							break;
+						case 5:
+							gridValid = Math.floor(zoomPosition[i] / 10) == Math.floor(zoomPosition[4] / 10)
+							break;
+						case 8:
+							gridValid = Math.floor(zoomPosition[i] / 10) - 1 == Math.floor(zoomPosition[4] / 10)
+							break;
+						default:
+							gridValid = true;
+							break;
+					}
+				if(zoomPosition[i] >= 0 &&
+					zoomPosition[i] < 100 &&
+					gridValid) {
+					if(gridArr[zoomPosition[i]].explored < 1) {
+						document.getElementById("tz" + i.toString()).style.backgroundColor = "rgba(255,255,255,1)";
+					}
+					if(gridArr[zoomPosition[i]].explored > 0) {
+						document.getElementById("tz" + i.toString()).style.backgroundColor = "rgba(255,255,255,0)";
+					}
+					if(i == 4) {
+						if(OPC.lightLoc == "offHand") {
+							switch(OPC.offHand) {
+								case torch:
+									lightLifeBar = OPC.lightLife / 6;
+									break;
+								case lantern:
+									lightLifeBar = OPC.lightLife / 36;			
+									break;
+								default:
+									lightLifeBar = 100;
+									break;
+							}
+						}
+						document.getElementById("tz" + i.toString()).style.backgroundColor = "rgba(255," + lightLifeBar * 2.55 + ",0,0.5)";
+					}
+				}
+				else {
+					document.getElementById("tz" + i.toString()).style.backgroundColor = "rgba(255,255,255,1)";
+				}		
+			}
+			UpdateGraphicsZoomMap();
+			UpdateNoteGrid();
+			break;
+		case 10: // update the tile map for a 10x10 grid (zoomed out)
+			for(i=0; i < zoomPosition.length; i++) { // clear the 3x3
+//				document.getElementById("tz" + i.toString()).innerHTML = "";
+				document.getElementById("tz" + i.toString()).style.backgroundColor = "rgba(0,0,0,0)";
+			}
+			for(i=0; i<gridArr.length; i++) { // do for the whole map array
+				document.getElementById("t" + i.toString()).innerHTML = ""; // clears the letters off the map
+				if(gridArr[i].open == 1) {
+//					document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
+//					document.getElementById("t" + i.toString()).innerHTML = gridArr[i].explored;
+				}
+				if(gridArr[i].room == "R") { // tile is a room
+//					document.getElementById("t" + i.toString()).innerHTML = "R";
+				}
+				if(gridArr[i].room == "SC") { // tile is a secret chamber
+//					document.getElementById("t" + i.toString()).innerHTML = "SC";
+				}
+				if(gridArr[i].sDoor > 0) { // tile has a secret door
+//					document.getElementById("t" + i.toString()).innerHTML = "D";
+				}
+				if(gridArr[i].encounter == "combat") { // tile has a combat encounter
+//					gridName = "";
+//					for(iGN = 0; iGN < gridArr[i].nonPC.name.length; iGN ++) {
+//						if(gridArr[i].nonPC.name.charAt(iGN) == gridArr[i].nonPC.name.charAt(iGN).toUpperCase() && // is an upper case letter
+//							gridArr[i].nonPC.name.charAt(iGN) !== " "){ // is not a space
+//							gridName += gridArr[i].nonPC.name.charAt(iGN);
+//						}
+//					}
+//					document.getElementById("t" + i.toString()).innerHTML = gridName + " " + gridArr[i].nonPC.hpCurrent;
+				}
+				if(gridArr[i].pathValue !== 0) { // tile has an exit path value
+					document.getElementById("t" + i.toString()).innerHTML = gridArr[i].pathValue;
+				}				
+				if(gridArr[i].pathValue == 0) { // tile does not have an exit path value
+					document.getElementById("t" + i.toString()).innerHTML = "";
+				}
+				if(gridArr[i].encounter == "trap" && // tile has a trap
+					gridArr[i].trapState == 4) { // trap is in state for (discovered by unsprung)
+//					document.getElementById("t" + i.toString()).innerHTML = "-T-";
+				}
+				if(gridArr[i].explored < 1) { // tile has been explored
+					document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,1)";
+				}
+				else if(gridArr[i].explored > 0) { // tile has not been explored
+					document.getElementById("t" + i.toString()).style.backgroundColor = "rgba(255,255,255,0)";
+				}
+			}
+			if(OPC.currentPos >= 0) {
+				if(OPC.lightLoc == "offHand") {
+					switch(OPC.offHand) {
+						case torch:
+							lightLifeBar = OPC.lightLife / 6;
+							break;
+						case lantern:
+							lightLifeBar = OPC.lightLife / 36;			
+							break;
+						default:
+							lightLifeBar = 100;
+							break;
+					}
+				}
+				document.getElementById("t" + OPC.currentPos.toString()).style.backgroundColor = "rgba(255," + lightLifeBar * 2.55 + ",0,0.5)";
+			}
+			break;
 	}
-	if(OPC.currentPos >= 0) {
-		document.getElementById("t" + OPC.currentPos.toString()).style.backgroundColor = "rgba(127,255,127,0.5)";
-	}
-};
+}
 
 // this function generates a new dungeon
 function GenerateDungeon() {
@@ -600,16 +866,4 @@ function GenerateDungeon() {
 	AddEncounters();
 	UpdateGraphicsMap();
 	UpdateTileMap();
-};
-
-/*
-To Do List
-- preload img folder
-- locked doors between room
-- Create new pathfinding function to return to a specific point (safe room for resting) using only explored tiles
-- encounters
-- traps
-- loot and equipment system
-- leveling system
-- quest system
-*/
+}
